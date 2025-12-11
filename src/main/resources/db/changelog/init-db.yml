@@ -1,0 +1,107 @@
+databaseChangeLog:
+  - changeSet:
+      id: crate_usr_product_order_tables
+      author: "Лефтеров Авраам Андреевич"
+      changes:
+        - createTable:
+            tableName: usr
+            columns:
+              - column:
+                  name: id
+                  type: BIGINT
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: name
+                  type: varchar(255)
+                  constraints:
+                    nullable: false
+
+        - createTable:
+            tableName: products
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: price
+                  type: decimal(10,2)
+                  constraints:
+                    nullable: false
+
+        - createTable:
+            tableName: orders
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: price
+                  type: decimal(10,2)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: user_id
+                  type: bigint
+                  constraints:
+                    nullable: true
+
+        - addForeignKeyConstraint:
+            constraintName: fk_order_user
+            baseTableName: orders
+            baseColumnNames: user_id
+            referencedTableName: usr
+            referencedColumnNames: id
+
+        - createTable:
+            tableName: order_product
+            columns:
+              - column:
+                  name: order_id
+                  type: bigint
+                  constraints:
+                    primaryKey: true
+                    nullable: true
+              - column:
+                  name: product_id
+                  type: bigint
+                  constraints:
+                    primaryKey: true
+                    nullable: true
+
+        - addForeignKeyConstraint:
+            constraintName: fk_order_product_order
+            baseTableName: order_product
+            baseColumnNames: order_id
+            referencedTableName: orders
+            referencedColumnNames: id
+
+        - addForeignKeyConstraint:
+            constraintName: fk_order_product_product
+            baseTableName: order_product
+            baseColumnNames: product_id
+            referencedTableName: products
+            referencedColumnNames: id
+
+  - changeSet:
+      id: add_name_column_to_products_table
+      author: Лефтеров Авраам Андреевич
+      changes:
+        - addColumn:
+            tableName: products
+            columns:
+              - column:
+                  name: name
+                  type: VARCHAR(255)
+                  constraints:
+                    nullable: false
