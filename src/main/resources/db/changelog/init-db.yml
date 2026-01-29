@@ -1,10 +1,16 @@
 databaseChangeLog:
   - changeSet:
-      id: crate_usr_product_order_tables
+      id: 1765657909464 # у нас придерживаются подхода, что id должен быть миллисекунды UNIX time
       author: "Лефтеров Авраам Андреевич"
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - tableExists:
+                tableName: user
+                schemaName: example_schema
       changes:
         - createTable:
-            tableName: usr
+            tableName: user
             columns:
               - column:
                   name: id
@@ -19,6 +25,16 @@ databaseChangeLog:
                   constraints:
                     nullable: false
 
+  - changeSet: # лучше один changeSet - одно изменение
+      id: 1765657989346
+      author: "Лефтеров Авраам Андреевич"
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - tableExists:
+                tableName: products # здесь таблица во множественном числе, а выше в единственном
+                schemaName: example_schema
+      changes:
         - createTable:
             tableName: products
             columns:
@@ -35,6 +51,16 @@ databaseChangeLog:
                   constraints:
                     nullable: false
 
+  - changeSet:
+      id: 1765658086946
+      author: "Лефтеров Авраам Андреевич"
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - tableExists:
+                tableName: orders
+                schemaName: example_schema
+      changes:
         - createTable:
             tableName: orders
             columns:
@@ -55,14 +81,23 @@ databaseChangeLog:
                   type: bigint
                   constraints:
                     nullable: true
-
         - addForeignKeyConstraint:
             constraintName: fk_order_user
             baseTableName: orders
             baseColumnNames: user_id
-            referencedTableName: usr
+            referencedTableName: user
             referencedColumnNames: id
 
+  - changeSet:
+      id: 1765658192086
+      author: "Лефтеров Авраам Андреевич"
+      preConditions:
+        - onFail: MARK_RAN
+        - not:
+            - tableExists:
+                tableName: order_product
+                schemaName: example_schema
+      changes:
         - createTable:
             tableName: order_product
             columns:
@@ -94,8 +129,13 @@ databaseChangeLog:
             referencedColumnNames: id
 
   - changeSet:
-      id: add_name_column_to_products_table
-      author: Лефтеров Авраам Андреевич
+      id: 1765658259690
+      author: "Лефтеров Авраам Андреевич"
+      preConditions:
+        - onFail: MARK_RAN
+        - tableExists:
+            tableName: products
+            schemaName: example_schema
       changes:
         - addColumn:
             tableName: products

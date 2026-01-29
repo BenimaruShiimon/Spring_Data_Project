@@ -1,9 +1,9 @@
-package com.example.springdata.spring_db_demo.entity.repository.jdbs;
+package com.example.springdata.spring_db_demo.repository.jdbs;
 
 import com.example.springdata.spring_db_demo.entity.Order;
 import com.example.springdata.spring_db_demo.entity.Product;
 import com.example.springdata.spring_db_demo.entity.User;
-import com.example.springdata.spring_db_demo.entity.repository.UserRepository;
+import com.example.springdata.spring_db_demo.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Profile;
 import org.springframework.dao.DataAccessException;

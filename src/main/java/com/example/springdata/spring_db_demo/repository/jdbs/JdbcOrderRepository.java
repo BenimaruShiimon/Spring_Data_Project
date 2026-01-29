@@ -1,9 +1,9 @@
-package com.example.springdata.spring_db_demo.entity.repository.jdbs;
+package com.example.springdata.spring_db_demo.repository.jdbs;
 
 import com.example.springdata.spring_db_demo.entity.Order;
 import com.example.springdata.spring_db_demo.entity.Product;
 import com.example.springdata.spring_db_demo.entity.User;
-import com.example.springdata.spring_db_demo.entity.repository.OrderRepository;
+import com.example.springdata.spring_db_demo.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Profile;
 import org.springframework.dao.DataAccessException;
@@ -24,6 +24,7 @@ public class JdbcOrderRepository implements OrderRepository {
 
     @Override
     public Optional<Order> findById(Long orderId) {
+        // Выглядит страшно =)
         String queryOrder = "SELECT o.id AS order_id, o.price AS order_price, "
                 + "u.id AS user_id, u.name AS user_name, "
                 + "p.id AS product_id, p.name AS product_name, p.price AS product_price "
@@ -61,6 +62,9 @@ public class JdbcOrderRepository implements OrderRepository {
         return jdbcTemplate.query(sqlOrder, new OrderExtractor(), id);
     }
 
+    // Я бы в методах, который меняют состояние БД тоже добавил бы @Transactional. В текущей реализации это не критично
+    // может быть, но если ты метод переиспользуешь в другом месте, то когда появится ошибка, у тебя может быть
+    // не консистентное состояние БД.
     @Override
     public Order save(Order order) {
         if (order.getId() == null) {

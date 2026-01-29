@@ -1,4 +1,4 @@
-package com.example.springdata.spring_db_demo.entity.repository;
+package com.example.springdata.spring_db_demo.repository;
 
 import com.example.springdata.spring_db_demo.entity.User;
 
