@@ -1,7 +1,7 @@
-package com.example.springdata.spring_db_demo.entity.repository.jpa;
+package com.example.springdata.spring_db_demo.repository.jpa;
 
 import com.example.springdata.spring_db_demo.entity.Product;
-import com.example.springdata.spring_db_demo.entity.repository.ProductRepository;
+import com.example.springdata.spring_db_demo.repository.ProductRepository;
 import org.springframework.context.annotation.Profile;
 import org.springframework.data.jpa.repository.JpaRepository;
 

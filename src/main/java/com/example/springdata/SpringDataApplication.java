@@ -3,13 +3,12 @@ package com.example.springdata;
 import com.example.springdata.spring_db_demo.entity.Order;
 import com.example.springdata.spring_db_demo.entity.Product;
 import com.example.springdata.spring_db_demo.entity.User;
-import com.example.springdata.spring_db_demo.entity.repository.jdbs.JdbcOrderRepository;
-import com.example.springdata.spring_db_demo.entity.repository.jdbs.JdbcProductRepository;
-import com.example.springdata.spring_db_demo.entity.repository.jdbs.JdbcUserRepository;
+import com.example.springdata.spring_db_demo.repository.OrderRepository;
+import com.example.springdata.spring_db_demo.repository.ProductRepository;
+import com.example.springdata.spring_db_demo.repository.UserRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.transaction.Transactional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -21,19 +20,18 @@ import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.Set;
 
+@Slf4j
 @SpringBootApplication
 public class SpringDataApplication {
-
-    private static final Logger log = LoggerFactory.getLogger(SpringDataApplication.class);
-
+    // Не до конца понял, что ты хотел разделением jpa и jdbc, но на jpa всё выглядит намного проще и лучше выбрать либо
+    // одно, либо другое. Если оставишь так,
+    // как у меня, то всё, что связано с jdbc можно удалить.
     @Autowired
-    private JdbcOrderRepository jdbcOrderRepository;
-
+    private OrderRepository orderRepository;
     @Autowired
-    private JdbcProductRepository jdbcProductRepository;
-
+    private ProductRepository productRepository;
     @Autowired
-    private JdbcUserRepository jdbcUserRepository;
+    private UserRepository userRepository;
 
     @Autowired
     private EntityManager entityManager;
@@ -41,50 +39,49 @@ public class SpringDataApplication {
     public static void main(String[] args) {
         SpringApplication.run(SpringDataApplication.class, args);
     }
+
+    // Лучше вынести в отдельный компонент
     @Transactional
     @EventListener(ApplicationReadyEvent.class)
     public void onApplicationReady(ApplicationReadyEvent applicationReadyEvent) {
-        User user = new User();
-        user.setName("Jonathan");
-        User user2 = new User();
-        user2.setName("John Doe");
+        User user = User.builder().name("Jonathan").build();
+        User user2 = User.builder().name("John Doe").build();
 
-        jdbcUserRepository.save(user);
-        jdbcUserRepository.save(user2);
+        userRepository.save(user);
+        userRepository.save(user2);
 
         log.info("------------");
         log.info("User 1 successfully created and saved");
-        log.info("User1: {} ", jdbcUserRepository.findById(user.getId()));
+        log.info("User1: {} ", userRepository.findById(user.getId()));
         log.info("------------");
         log.info("User 2 successfully created and saved");
-        log.info("User2: {} ", jdbcUserRepository.findById(user2.getId()));
+        log.info("User2: {} ", userRepository.findById(user2.getId()));
         log.info("------------");
-        log.info("All Users : {}", jdbcUserRepository.findAll());
+        log.info("All Users : {}", userRepository.findAll());
 
-        Product product = new Product();
-        product.setName("Product A");
-        product.setPrice(new BigDecimal(2.33));
-        Product product2 = new Product();
-        product2.setName("Product B");
-        product2.setPrice(new BigDecimal(10.22));
-        Product product3 = new Product();
-        product3.setName("Product C");
-        product3.setPrice(new BigDecimal(15.99));
+        Product product = Product.builder().name("Product A").price(BigDecimal.valueOf(2.33)).build();
+        Product product2 = Product.builder().name("Product B").price(BigDecimal.valueOf(10.22)).build();
+        Product product3 = Product.builder().name("Product C").price(BigDecimal.valueOf(15.99)).build();
 
-        jdbcProductRepository.save(product);
-        jdbcProductRepository.save(product2);
-        jdbcProductRepository.save(product3);
+        // Тут лучше сохранить всё скопом, что-то вроде productRepository.saveAll(products);
+        productRepository.save(product);
+        productRepository.save(product2);
+        productRepository.save(product3);
+
+        // На каждый элемент дёргать запросом БД дороговато. Сейчас это не сильно критично, но на больших объемах данных
+        // можно почувствовать. Лучше сразу дёрнуть всё и логировать в цикле, например.
+
         log.info("------------");
         log.info("Product A successfully created and saved");
-        log.info("Product A: {}", jdbcProductRepository.findById(product.getId()));
+        log.info("Product A: {}", productRepository.findById(product.getId()));
         log.info("------------");
         log.info("Product B successfully created and saved");
-        log.info("Product B: {}", jdbcProductRepository.findById(product2.getId()));
+        log.info("Product B: {}", productRepository.findById(product2.getId()));
         log.info("------------");
-        log.info("Product B successfully created and saved");
-        log.info("Product C: {}", jdbcProductRepository.findById(product3.getId()));
+        log.info("Product C successfully created and saved");
+        log.info("Product C: {}", productRepository.findById(product3.getId()));
         log.info("------------");
-        log.info("First and Second product is: {}", jdbcProductRepository.findAll(
+        log.info("First and Second product is: {}", productRepository.findAll(
                 Pageable.ofSize(2)
         ).getContent());
         log.info("------------");
@@ -95,45 +92,45 @@ public class SpringDataApplication {
         products.add(product);
         products.add(product2);
         order.setProducts(products);
-        order.setPrice(order.getProducts().stream().map(p -> p.getPrice()).reduce(BigDecimal.ZERO, BigDecimal::add));
+        order.setPrice(order.getProducts().stream().map(Product::getPrice).reduce(BigDecimal.ZERO, BigDecimal::add));
 
         Order order2 = new Order();
         order2.setUser(user2);
         Set<Product> products2 = new HashSet<>();
         products2.add(product3);
         order2.setProducts(products2);
-        order2.setPrice(order2.getProducts().stream().map(p -> p.getPrice()).reduce(BigDecimal.ZERO, BigDecimal::add));
+        order2.setPrice(order2.getProducts().stream().map(Product::getPrice).reduce(BigDecimal.ZERO, BigDecimal::add));
 
-        jdbcOrderRepository.save(order);
-        jdbcOrderRepository.save(order2);
+        orderRepository.save(order);
+        orderRepository.save(order2);
 
         log.info("------------");
-        log.info("All user after save orders: {}", jdbcOrderRepository.findAll());
+        log.info("All user after save orders: {}", orderRepository.findAll());
         log.info("------------");
 
-        log.info("Order: {}", jdbcOrderRepository.findById(order.getId()));
-        log.info("Order2: {}", jdbcOrderRepository.findById(order2.getId()));
+        log.info("Order: {}", orderRepository.findById(order.getId()));
+        log.info("Order2: {}", orderRepository.findById(order2.getId()));
         log.info("------------");
 
-        log.info("All orders by user: {}", jdbcOrderRepository.findByUserId(user.getId()));
+        log.info("All orders by user: {}", orderRepository.findByUserId(user.getId()));
         log.info("------------");
-        log.info("All orders by user2: {}", jdbcOrderRepository.findByUserId(user2.getId()));
-        log.info("All orders: {}", jdbcOrderRepository.findAll());
+        log.info("All orders by user2: {}", orderRepository.findByUserId(user2.getId()));
+        log.info("All orders: {}", orderRepository.findAll());
         log.info("------------");
 
-        entityManager.clear();
-        log.info("Delete order by id: {}", jdbcOrderRepository.findById(order.getId()));
-        jdbcOrderRepository.deleteById(order.getId());
+        entityManager.clear(); // Без clear разве не работает? Ни jdbc, ни jpa?
+        log.info("Delete order by id: {}", orderRepository.findById(order.getId()));
+        orderRepository.deleteById(order.getId());
         log.info("-----------");
-        log.info("All orders after delete {}", jdbcOrderRepository.findAll());
+        log.info("All orders after delete {}", orderRepository.findAll());
         log.info("------------");
 
         entityManager.clear();
         log.info("Delete User by Id: {}",  user2);
-        jdbcUserRepository.deleteById(user2.getId());
+        userRepository.deleteById(user2.getId());
         log.info("------------");
-        log.info("Orders after delete user2 {}", jdbcOrderRepository.findAll());
-        log.info("All users after delete {}", jdbcUserRepository.findAll());
+        log.info("Orders after delete user2 {}", orderRepository.findAll());
+        log.info("All users after delete {}", userRepository.findAll());
         log.info("------------");
 
         log.info("Test data inserted successfully");

@@ -5,10 +5,10 @@ spring:
     change-log: classpath:/db/changelog/master.xml
   datasource:
     url: jdbc:postgresql://localhost:5432/example_db
-    username: admin
+    username: admin # лучше логин, пароль, url и схему подхватывать из параметров запуск приложения
     password: admin
     hikari:
-      schema: example_schema
+      schema: example_schema # обычно делают public
       connection-init-sql: CREATE SCHEMA IF NOT EXISTS example_schema
   jpa:
     generate-ddl: false
